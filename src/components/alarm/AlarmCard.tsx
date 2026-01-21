@@ -1,0 +1,56 @@
+import { useState } from "react";
+import close from "../../assets/alarm/alarm_close.png";
+import { deleteAlarmAPI } from "../../services/alarm";
+import { useAlarmStore } from "../../stores/alarmStore";
+import AlarmCardComment from "./alarmCardType/AlarmCardComment";
+import AlarmCardReport from "./alarmCardType/AlarmCardReport";
+import AlarmCardVote from "./alarmCardType/AlarmCardVote";
+import PostAlarm from "../modal/PostAlarm";
+import AlarmCardLike from "./alarmCardType/AlarmCardLike";
+
+export default function AlarmCard({ alarm }: { alarm: Alarm }) {
+  const { alarms, setAlarms, setUnReadCount, unReadCount } = useAlarmStore((state) => state);
+  const [openPost, setOpenPost] = useState(false);
+  const [postData, setPostData] = useState<Post | null>(null);
+
+  const renderContent = () => {
+    switch (alarm.type) {
+      case "votes":
+        return <AlarmCardVote alarm={alarm} setPostData={setPostData} openPost={openPost} />;
+      case "comments":
+        return <AlarmCardComment alarm={alarm} setPostData={setPostData} openPost={openPost} />;
+      case "likes":
+        return <AlarmCardLike alarm={alarm} setPostData={setPostData} post={postData} />;
+      case "reports":
+        return <AlarmCardReport />;
+    }
+  };
+
+  const deleteHandler = async () => {
+    await deleteAlarmAPI(alarm.uid);
+    if (!alarm.is_read) {
+      setUnReadCount(unReadCount > 0 ? unReadCount - 1 : 0);
+    }
+    setAlarms(alarms.filter((item) => item.uid !== alarm.uid));
+  };
+
+  return (
+    <>
+      <div
+        className="relative w-[320px] min-h-[100px] bg-[rgba(218,218,218,0.33)] rounded-[12px] m-auto cursor-pointer transition-transform duration-300 hover:scale-101 hover:bg-[rgba(175,174,174,0.34)] active:scale-98 shadow-sm shadow-[#0A0A0A]"
+        onClick={() => setOpenPost(true)}
+      >
+        <img
+          className="absolute right-2 top-2 transition-transform duration-200 hover:scale-105"
+          src={close}
+          alt="alarm_close"
+          onClick={deleteHandler}
+        />
+        {renderContent()}
+        {openPost && postData && (
+          <PostAlarm setOpenPost={setOpenPost} post={postData} deleteHandler={deleteHandler} />
+        )}
+      </div>
+    </>
+  );
+}

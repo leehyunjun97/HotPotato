@@ -1,0 +1,9 @@
+interface Profile {
+  uid: string;
+  email: string;
+  profile_img: string | null;
+  bio: string | null;
+  created_at: string;
+  username: string;
+  handle: string;
+}
